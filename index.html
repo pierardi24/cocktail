@@ -3,6 +3,9 @@
 <head>
   <title>Guess the Cocktail</title>
   <style>
+    /* Fun text styling for the header */
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
+    
     body {
       font-family: Arial, sans-serif;
       text-align: center;
@@ -14,6 +17,7 @@
       align-items: center; /* Center vertically */
       margin: 0; /* Remove default margin */
     }
+    
     #container {
       width: 33%; /* Middle third of the window */
       max-width: 600px; /* Optional: set a maximum width for larger screens */
@@ -22,6 +26,25 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
+
+    h1 {
+      font-family: 'Fredoka One', sans-serif;
+      font-size: 3rem;
+      color: #ff7e5f;
+      text-shadow: 3px 3px 5px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+      animation: bounce 1s infinite alternate;
+    }
+
+    @keyframes bounce {
+      0% {
+        transform: translateY(0);
+      }
+      100% {
+        transform: translateY(-10px);
+      }
+    }
+
     #cocktail-img {
       width: 100%;
       height: auto;
@@ -108,7 +131,7 @@
 </head>
 <body>
   <div id="container">
-    <h1>Guess the Cocktail</h1>
+    <h1>Cocktail Clue</h1> <!-- Fun header -->
     <div id="loading">Loading cocktails...</div>
     <img id="cocktail-img" src="" alt="Cocktail" style="display: none;">
     <div style="position: relative;">
@@ -257,8 +280,8 @@
           ingredients.push(`${measure || ''} ${ingredient}`);
         }
       }
-      feedback.innerHTML += `<br><strong>Ingredients:</strong><ul>${ingredients.map(ing => `<li>${ing}</li>`).join('')}</ul>`;
-      feedback.innerHTML += `<br><strong>Instructions:</strong><p>${currentCocktail.strInstructions}</p>`;
+      feedback.innerHTML += `<br><strong>Ingredients:</strong><br>${ingredients.join('<br>')}`;
+      feedback.innerHTML += `<br><strong>Instructions:</strong><br>${currentCocktail.strInstructions}`;
     }
 
     fetchAndCacheCocktails();
