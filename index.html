@@ -6,12 +6,18 @@
     body {
       font-family: Arial, sans-serif;
       text-align: center;
+      background: linear-gradient(135deg, #4e54c8, #8f94fb);
+      color: white;
+      padding: 20px;
     }
     #cocktail-img {
       width: 300px;
       height: auto;
       margin: 20px auto;
       display: block;
+      border: 3px solid white;
+      border-radius: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
     #autocomplete-list {
       position: absolute;
@@ -25,10 +31,13 @@
       right: 0;
       text-align: left;
       z-index: 1000;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
     #autocomplete-list div {
       padding: 10px;
       cursor: pointer;
+      color: black; /* Updated font color */
     }
     #autocomplete-list div:hover {
       background-color: #f1f1f1;
@@ -38,10 +47,23 @@
       font-size: 16px;
       width: 300px;
       margin-bottom: 20px;
+      border-radius: 5px;
+      border: none;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
     button {
       padding: 10px;
       font-size: 16px;
+      border-radius: 5px;
+      border: none;
+      cursor: pointer;
+      background: #ff7e5f;
+      color: white;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #feb47b;
     }
     #feedback {
       font-size: 18px;
@@ -49,49 +71,49 @@
     }
     #loading {
       font-size: 18px;
-      color: gray;
+      color: white;
     }
     .guess {
       padding: 10px;
       margin-top: 10px;
       font-size: 16px;
       text-align: left;
+      border-radius: 5px;
+      color: white;
     }
     .correct {
       background-color: green;
-      color: white;
     }
     .liquor-correct {
       background-color: yellow;
+      color: black;
     }
     .incorrect {
       background-color: red;
-      color: white;
     }
   </style>
 </head>
 <body>
-  <h1>Guess the Cocktail</h1>
-  <div id="loading">Loading cocktails...</div>
-  <img id="cocktail-img" src="" alt="Cocktail" style="display: none;">
-  <br>
-  <div style="position: relative;">
-    <input type="text" id="guess-input" placeholder="Start typing a cocktail name..." oninput="showAutocomplete()">
-    <div id="autocomplete-list"></div>
+  <div id="container">
+    <h1>Guess the Cocktail</h1>
+    <div id="loading">Loading cocktails...</div>
+    <img id="cocktail-img" src="" alt="Cocktail" style="display: none;">
+    <div style="position: relative;">
+      <input type="text" id="guess-input" placeholder="Start typing a cocktail name..." oninput="showAutocomplete()">
+      <div id="autocomplete-list"></div>
+    </div>
+    <button onclick="checkAnswer()" style="display: none;" id="submit-button">Submit</button>
+    <div id="feedback"></div>
+    <div id="guess-history"></div>
   </div>
-  <button onclick="checkAnswer()" style="display: none;" id="submit-button">Submit</button>
-  <div id="feedback"></div>
-  
-  <!-- Display Guesses Below -->
-  <div id="guess-history"></div>
 
   <script>
     const cocktailsAPI = "https://www.thecocktaildb.com/api/json/v1/1/search.php?f=";
     let cocktails = [];
     let currentCocktail = null;
-    let attemptCount = 0; // Track the number of attempts
+    let incorrectCocktails = new Set();
+    let attemptCount = 0;
 
-    // Function to fetch all cocktails and cache them for faster loading
     async function fetchAndCacheCocktails() {
       if (localStorage.getItem("cocktails")) {
         cocktails = JSON.parse(localStorage.getItem("cocktails"));
@@ -103,113 +125,103 @@
           for (let letter of letters) {
             const response = await fetch(cocktailsAPI + letter);
             const data = await response.json();
-
             if (data.drinks) {
               allCocktails = allCocktails.concat(data.drinks);
             }
           }
-          if (allCocktails.length > 0) {
-            cocktails = allCocktails;
-            localStorage.setItem("cocktails", JSON.stringify(cocktails)); // Cache the cocktails data
-            loadRandomCocktail();
-          } else {
-            document.getElementById("loading").textContent = "No cocktails found.";
-          }
+          cocktails = allCocktails;
+          localStorage.setItem("cocktails", JSON.stringify(cocktails));
+          loadRandomCocktail();
         } catch (error) {
-          console.error("Error fetching cocktails:", error);
           document.getElementById("loading").textContent = "Failed to load cocktails.";
         }
       }
     }
 
-    // Load a random cocktail
     function loadRandomCocktail() {
       const randomIndex = Math.floor(Math.random() * cocktails.length);
       currentCocktail = cocktails[randomIndex];
-
-      // Display the cocktail image
       const imgElement = document.getElementById("cocktail-img");
       imgElement.src = currentCocktail.strDrinkThumb;
       imgElement.style.display = "block";
-
-      // Display the liquor category hint
-      const liquorCategory = currentCocktail.strAlcoholic.toLowerCase();
       document.getElementById("loading").style.display = "none";
       document.getElementById("submit-button").style.display = "inline";
-      document.getElementById("feedback").textContent = `Hint: This cocktail is ${liquorCategory}.`;
-      document.getElementById("feedback").style.fontSize = "16px";
     }
 
-    // Show autocomplete suggestions
     function showAutocomplete() {
       const input = document.getElementById("guess-input").value.toLowerCase();
       const autocompleteList = document.getElementById("autocomplete-list");
-      autocompleteList.innerHTML = ""; // Clear previous suggestions
-
+      autocompleteList.innerHTML = "";
       if (!input) return;
-
-      // Filter matching cocktails
       const matches = cocktails.filter(cocktail =>
-        cocktail.strDrink.toLowerCase().includes(input)
+        cocktail.strDrink.toLowerCase().includes(input) &&
+        !incorrectCocktails.has(cocktail.strDrink.toLowerCase())
       );
-
-      // Populate suggestions
       matches.forEach(match => {
         const suggestion = document.createElement("div");
         suggestion.textContent = match.strDrink;
         suggestion.onclick = () => {
           document.getElementById("guess-input").value = match.strDrink;
-          autocompleteList.innerHTML = ""; // Clear suggestions
+          autocompleteList.innerHTML = "";
         };
         autocompleteList.appendChild(suggestion);
       });
     }
 
-    // Check if the user's guess is correct
     function checkAnswer() {
       const userInput = document.getElementById("guess-input").value.trim().toLowerCase();
       const feedback = document.getElementById("feedback");
       const guessHistory = document.getElementById("guess-history");
 
-      // Create a div element to display the user's guess
       const guessDiv = document.createElement("div");
       guessDiv.classList.add("guess");
 
       if (attemptCount < 5) {
         if (userInput === currentCocktail.strDrink.toLowerCase()) {
-          guessDiv.textContent = `${userInput} - Correct! It's a ${currentCocktail.strDrink}!`;
+          guessDiv.textContent = `Correct! It's a ${currentCocktail.strDrink}!`;
           guessDiv.classList.add("correct");
+          showRecipe();
         } else {
-          const userLiquorCategory = cocktails.find(cocktail => cocktail.strDrink.toLowerCase() === userInput)?.strAlcoholic.toLowerCase();
-          const correctLiquorCategory = currentCocktail.strAlcoholic.toLowerCase();
-          
-          if (userLiquorCategory === correctLiquorCategory) {
-            guessDiv.textContent = `${userInput} - Incorrect cocktail name, but you guessed the right liquor category! This is a ${correctLiquorCategory} drink. Try again!`;
+          const userLiquor = cocktails.find(cocktail => cocktail.strDrink.toLowerCase() === userInput)?.strIngredient1;
+          const correctLiquor = currentCocktail.strIngredient1;
+
+          incorrectCocktails.add(userInput);
+
+          if (userLiquor === correctLiquor) {
+            guessDiv.textContent = `${userInput} - Incorrect cocktail name, but made with the same liquor: ${correctLiquor}. Try again!`;
             guessDiv.classList.add("liquor-correct");
           } else {
-            guessDiv.textContent = `${userInput} - Incorrect. You guessed the wrong cocktail name and the wrong liquor category. Try again!`;
+            guessDiv.textContent = `${userInput} - Incorrect. Made with a different liquor: ${userLiquor || 'unknown'}. The correct alcohol is ${correctLiquor}. Try again!`;
             guessDiv.classList.add("incorrect");
           }
         }
 
-        // Append the guess div to the guess history section
         guessHistory.appendChild(guessDiv);
-
-        // Increment the attempt count
         attemptCount++;
-
-        // Clear the input box
         document.getElementById("guess-input").value = "";
       }
 
-      // After 5 attempts, reveal the correct answer
       if (attemptCount >= 5) {
-        feedback.textContent = `You've made 5 incorrect guesses. The correct answer is: ${currentCocktail.strDrink}.`;
-        document.getElementById("submit-button").style.display = "none"; // Hide submit button after 5 guesses
+        feedback.innerHTML = `The correct answer is: ${currentCocktail.strDrink}.`;
+        document.getElementById("submit-button").style.display = "none";
+        showRecipe();
       }
     }
 
-    // Fetch and cache cocktails on page load
+    function showRecipe() {
+      const feedback = document.getElementById("feedback");
+      const ingredients = [];
+      for (let i = 1; i <= 15; i++) {
+        const ingredient = currentCocktail[`strIngredient${i}`];
+        const measure = currentCocktail[`strMeasure${i}`];
+        if (ingredient) {
+          ingredients.push(`${measure || ''} ${ingredient}`);
+        }
+      }
+      feedback.innerHTML += `<br><strong>Ingredients:</strong><ul>${ingredients.map(ing => `<li>${ing}</li>`).join('')}</ul>`;
+      feedback.innerHTML += `<br><strong>Instructions:</strong><p>${currentCocktail.strInstructions}</p>`;
+    }
+
     fetchAndCacheCocktails();
   </script>
 </body>
