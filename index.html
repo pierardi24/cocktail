@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guess the Cocktail</title>
   <style>
-    /* Fun text styling for the header */
+    /* Importing fun font for header */
     @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap');
     
     body {
@@ -11,17 +13,18 @@
       text-align: center;
       background: linear-gradient(135deg, #4e54c8, #8f94fb);
       color: white;
-      height: 100vh; /* Make sure body takes up full height of the window */
+      margin: 0;
+      padding: 0;
+      height: 100vh;
       display: flex;
-      justify-content: center; /* Center horizontally */
-      align-items: center; /* Center vertically */
-      margin: 0; /* Remove default margin */
+      justify-content: center;
+      align-items: center;
     }
-    
+
     #container {
-      width: 33%; /* Middle third of the window */
-      max-width: 600px; /* Optional: set a maximum width for larger screens */
-      background: rgba(255, 255, 255, 0.1); /* Slight background to separate from the page */
+      width: 100%;
+      max-width: 600px; /* Maximum width for larger screens */
+      background: rgba(255, 255, 255, 0.1);
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -54,40 +57,21 @@
       border-radius: 15px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
-    #autocomplete-list {
-      position: absolute;
-      border: 1px solid #ddd;
-      background-color: #fff;
-      max-height: 150px;
-      overflow-y: auto;
-      width: 100%;
-      margin: auto;
-      left: 0;
-      right: 0;
-      text-align: left;
-      z-index: 1000;
-      border-radius: 5px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    }
-    #autocomplete-list div {
-      padding: 10px;
-      cursor: pointer;
-      color: black; /* Updated font color */
-    }
-    #autocomplete-list div:hover {
-      background-color: #f1f1f1;
-    }
+
+    /* Input & button styling */
     input {
-      padding: 10px;
+      padding: 12px;
       font-size: 16px;
       width: 100%;
       margin-bottom: 20px;
       border-radius: 5px;
       border: none;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      margin-bottom: 10px;
     }
+
     button {
-      padding: 10px;
+      padding: 12px;
       font-size: 16px;
       border-radius: 5px;
       border: none;
@@ -98,34 +82,83 @@
       transition: background 0.3s ease;
       width: 100%;
     }
+
     button:hover {
       background: #feb47b;
     }
+
+    /* Autocomplete list */
+    #autocomplete-list {
+      position: absolute;
+      border: 1px solid #ddd;
+      background-color: #fff;
+      max-height: 150px;
+      overflow-y: auto;
+      width: 100%;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    }
+
+    #autocomplete-list div {
+      padding: 12px;
+      cursor: pointer;
+      color: black;
+    }
+
+    #autocomplete-list div:hover {
+      background-color: #f1f1f1;
+    }
+
     #feedback {
       font-size: 18px;
       margin-top: 20px;
     }
-    #loading {
-      font-size: 18px;
-      color: white;
-    }
+
+    /* Feedback for guesses */
     .guess {
-      padding: 10px;
+      padding: 12px;
       margin-top: 10px;
       font-size: 16px;
       text-align: left;
       border-radius: 5px;
       color: white;
     }
+
     .correct {
       background-color: green;
     }
+
     .liquor-correct {
       background-color: yellow;
       color: black;
     }
+
     .incorrect {
       background-color: red;
+    }
+
+    /* Mobile-friendly adjustments */
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      input, button {
+        font-size: 14px;
+      }
+
+      #container {
+        width: 90%;
+        padding: 15px;
+      }
+
+      #cocktail-img {
+        width: 100%;
+        height: auto;
+      }
     }
   </style>
 </head>
@@ -151,18 +184,16 @@
     let attemptCount = 0;
 
     async function fetchAndCacheCocktails() {
-      const today = new Date().toISOString().slice(0, 10); // Get current date in YYYY-MM-DD format
+      const today = new Date().toISOString().slice(0, 10);
       const lastPlayed = localStorage.getItem("lastPlayed");
 
-      // If the user has already played today, block the game
       if (lastPlayed === today) {
         document.getElementById("loading").textContent = "You've already played today! Please come back tomorrow.";
         document.getElementById("guess-input").disabled = true;
         document.getElementById("submit-button").disabled = true;
-        return; // Prevent further execution
+        return;
       }
 
-      // If it's a new day, load the cocktail data and allow gameplay
       if (!localStorage.getItem("cocktails")) {
         const letters = 'abcdefghijklmnopqrstuvwxyz';
         try {
@@ -183,7 +214,7 @@
         cocktails = JSON.parse(localStorage.getItem("cocktails"));
       }
 
-      loadRandomCocktail(); // Load random cocktail image and game functionality
+      loadRandomCocktail();
     }
 
     function loadRandomCocktail() {
@@ -213,7 +244,7 @@
         suggestion.onclick = () => {
           document.getElementById("guess-input").value = match.strDrink;
           autocompleteList.innerHTML = "";
-          enableSubmitButton(); // Enable submit button once an option is selected
+          enableSubmitButton();
         };
         autocompleteList.appendChild(suggestion);
       });
@@ -222,7 +253,6 @@
     function enableSubmitButton() {
       const submitButton = document.getElementById("submit-button");
       const input = document.getElementById("guess-input").value.trim();
-      // Enable the submit button only when the input is valid
       submitButton.disabled = input === "" || !cocktails.some(cocktail => cocktail.strDrink.toLowerCase() === input.toLowerCase());
     }
 
@@ -264,9 +294,8 @@
         document.getElementById("submit-button").style.display = "none";
         showRecipe();
 
-        // Store the date when the game is over
-        const today = new Date().toISOString().slice(0, 10); // Current date
-        localStorage.setItem("lastPlayed", today); // Store today's date
+        const today = new Date().toISOString().slice(0, 10);
+        localStorage.setItem("lastPlayed", today);
       }
     }
 
