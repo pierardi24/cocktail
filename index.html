@@ -8,10 +8,22 @@
       text-align: center;
       background: linear-gradient(135deg, #4e54c8, #8f94fb);
       color: white;
+      height: 100vh; /* Make sure body takes up full height of the window */
+      display: flex;
+      justify-content: center; /* Center horizontally */
+      align-items: center; /* Center vertically */
+      margin: 0; /* Remove default margin */
+    }
+    #container {
+      width: 33%; /* Middle third of the window */
+      max-width: 600px; /* Optional: set a maximum width for larger screens */
+      background: rgba(255, 255, 255, 0.1); /* Slight background to separate from the page */
       padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
     #cocktail-img {
-      width: 300px;
+      width: 100%;
       height: auto;
       margin: 20px auto;
       display: block;
@@ -25,7 +37,7 @@
       background-color: #fff;
       max-height: 150px;
       overflow-y: auto;
-      width: 300px;
+      width: 100%;
       margin: auto;
       left: 0;
       right: 0;
@@ -45,7 +57,7 @@
     input {
       padding: 10px;
       font-size: 16px;
-      width: 300px;
+      width: 100%;
       margin-bottom: 20px;
       border-radius: 5px;
       border: none;
@@ -61,6 +73,7 @@
       color: white;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       transition: background 0.3s ease;
+      width: 100%;
     }
     button:hover {
       background: #feb47b;
@@ -102,7 +115,7 @@
       <input type="text" id="guess-input" placeholder="Start typing a cocktail name..." oninput="showAutocomplete()">
       <div id="autocomplete-list"></div>
     </div>
-    <button onclick="checkAnswer()" style="display: none;" id="submit-button">Submit</button>
+    <button onclick="checkAnswer()" style="display: none;" id="submit-button" disabled>Submit</button>
     <div id="feedback"></div>
     <div id="guess-history"></div>
   </div>
@@ -115,10 +128,19 @@
     let attemptCount = 0;
 
     async function fetchAndCacheCocktails() {
-      if (localStorage.getItem("cocktails")) {
-        cocktails = JSON.parse(localStorage.getItem("cocktails"));
-        loadRandomCocktail();
-      } else {
+      const today = new Date().toISOString().slice(0, 10); // Get current date in YYYY-MM-DD format
+      const lastPlayed = localStorage.getItem("lastPlayed");
+
+      // If the user has already played today, block the game
+      if (lastPlayed === today) {
+        document.getElementById("loading").textContent = "You've already played today! Please come back tomorrow.";
+        document.getElementById("guess-input").disabled = true;
+        document.getElementById("submit-button").disabled = true;
+        return; // Prevent further execution
+      }
+
+      // If it's a new day, load the cocktail data and allow gameplay
+      if (!localStorage.getItem("cocktails")) {
         const letters = 'abcdefghijklmnopqrstuvwxyz';
         try {
           let allCocktails = [];
@@ -131,11 +153,14 @@
           }
           cocktails = allCocktails;
           localStorage.setItem("cocktails", JSON.stringify(cocktails));
-          loadRandomCocktail();
         } catch (error) {
           document.getElementById("loading").textContent = "Failed to load cocktails.";
         }
+      } else {
+        cocktails = JSON.parse(localStorage.getItem("cocktails"));
       }
+
+      loadRandomCocktail(); // Load random cocktail image and game functionality
     }
 
     function loadRandomCocktail() {
@@ -153,19 +178,29 @@
       const autocompleteList = document.getElementById("autocomplete-list");
       autocompleteList.innerHTML = "";
       if (!input) return;
+
       const matches = cocktails.filter(cocktail =>
         cocktail.strDrink.toLowerCase().includes(input) &&
         !incorrectCocktails.has(cocktail.strDrink.toLowerCase())
       );
+      
       matches.forEach(match => {
         const suggestion = document.createElement("div");
         suggestion.textContent = match.strDrink;
         suggestion.onclick = () => {
           document.getElementById("guess-input").value = match.strDrink;
           autocompleteList.innerHTML = "";
+          enableSubmitButton(); // Enable submit button once an option is selected
         };
         autocompleteList.appendChild(suggestion);
       });
+    }
+
+    function enableSubmitButton() {
+      const submitButton = document.getElementById("submit-button");
+      const input = document.getElementById("guess-input").value.trim();
+      // Enable the submit button only when the input is valid
+      submitButton.disabled = input === "" || !cocktails.some(cocktail => cocktail.strDrink.toLowerCase() === input.toLowerCase());
     }
 
     function checkAnswer() {
@@ -205,6 +240,10 @@
         feedback.innerHTML = `The correct answer is: ${currentCocktail.strDrink}.`;
         document.getElementById("submit-button").style.display = "none";
         showRecipe();
+
+        // Store the date when the game is over
+        const today = new Date().toISOString().slice(0, 10); // Current date
+        localStorage.setItem("lastPlayed", today); // Store today's date
       }
     }
 
