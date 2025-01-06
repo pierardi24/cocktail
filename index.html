@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guess the Cocktail</title>
   <style>
     /* Fun text styling for the header */
@@ -8,24 +10,48 @@
     
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
       background: linear-gradient(135deg, #4e54c8, #8f94fb);
       color: white;
-      height: 100vh; /* Make sure body takes up full height of the window */
+      height: 100vh; /* Full viewport height */
+      margin: 0; /* Remove default margin */
       display: flex;
       justify-content: center; /* Center horizontally */
       align-items: center; /* Center vertically */
-      margin: 0; /* Remove default margin */
+      flex-direction: column;
     }
-    
-    #container {
-      width: 100%; /* Take full width of the container */
-      max-width: 600px; /* Optional: set a maximum width for larger screens */
-      background: rgba(255, 255, 255, 0.1); /* Slight background to separate from the page */
+
+    #main-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      max-width: 1200px;
+      width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+      gap: 20px;
+    }
+
+    /* Sidebar with Amazon Affiliate Links */
+    #sidebar {
+      flex: 1;
+      min-width: 300px;
+      background-color: rgba(255, 255, 255, 0.1);
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
       text-align: center;
+    }
+
+    /* Game Block */
+    #game-container {
+      flex: 2;
+      min-width: 500px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      text-align: center;
+      position: relative;
     }
 
     h1 {
@@ -83,7 +109,7 @@
     input {
       padding: 10px;
       font-size: 16px;
-      width: 100%; /* Matches the width of the cocktail image and submit button */
+      width: 100%;
       margin-bottom: 20px;
       border-radius: 5px;
       border: none;
@@ -100,7 +126,7 @@
       color: white;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
       transition: background 0.3s ease;
-      width: 100%; /* Matches the width of the input and cocktail image */
+      width: 100%;
     }
 
     button:hover {
@@ -112,55 +138,146 @@
       margin-top: 20px;
     }
 
-    #loading {
-      font-size: 18px;
-      color: white;
+    #guess-history {
+      font-size: 16px;
+      margin-top: 20px;
     }
 
     .guess {
-      padding: 10px;
+      padding: 12px;
       margin-top: 10px;
       font-size: 16px;
-      text-align: left;
-      border-radius: 5px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      background-color: rgba(0, 0, 0, 0.6);
       color: white;
+      text-align: left;
+      transition: transform 0.3s ease;
     }
+
+    .guess:hover {
+      transform: scale(1.05);
+    }
+
     .correct {
       background-color: green;
+      font-weight: bold;
+      color: white;
+      border: 2px solid #4caf50;
     }
+
+    .incorrect {
+      background-color: red;
+      font-weight: bold;
+      color: white;
+      border: 2px solid #f44336;
+    }
+
     .liquor-correct {
       background-color: yellow;
       color: black;
+      font-weight: bold;
+      border: 2px solid #ffeb3b;
     }
-    .incorrect {
-      background-color: red;
+
+    .correct .icon,
+    .incorrect .icon,
+    .liquor-correct .icon {
+      margin-right: 10px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .feedback-text {
+      font-size: 18px;
+      margin-top: 20px;
+      text-align: center;
+      color: #fff;
+    }
+
+    .feedback-text .ingredients,
+    .feedback-text .instructions {
+      font-size: 16px;
+      margin-top: 10px;
+      text-align: left;
+    }
+
+    .feedback-text .ingredients li,
+    .feedback-text .instructions li {
+      padding: 5px;
+    }
+
+    .feedback-text ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .affiliate-img {
+      margin-bottom: 20px;
+    }
+
+    .affiliate-img img {
+      width: 100%;
+      max-width: 200px;
+      height: auto;
+      border-radius: 10px;
+    }
+
+    .affiliate-img p {
+      font-size: 16px;
+      color: white;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 768px) {
+      /* On smaller screens, the sidebar and game container take full width */
+      #sidebar, #game-container {
+        flex: 1 1 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <div id="container">
-    <!-- Amazon Affiliate Image Link -->
-    <div style="text-align: center; margin-bottom: 20px;">
-  <a href="https://amzn.to/4iWtZpg" target="_blank">
-    <img src="https://m.media-amazon.com/images/I/81q4wUI15TS.__AC_SX300_SY300_QL70_FMwebp_.jpg" alt="Buy Cocktail Shaker" style="width: 50%; max-width: 200px; height: auto; border-radius: 10px;">
-  </a>
-  <p style="font-size: 16px; color: white; margin-top: 10px;">Buy Cocktail Kits on Amazon - Click Above!</p>
-</div>
-
-    <h1>Cocktail Clue</h1> <!-- Fun header -->
-    <div id="loading">Loading cocktails...</div>
-
-    <!-- New instruction text above the image -->
-    <p>Begin typing below to guess the cocktail and unlock the recipe!</p>
-
-    <img id="cocktail-img" src="" alt="Cocktail" style="display: none;">
-    <div style="position: relative;">
-      <input type="text" id="guess-input" placeholder="Start typing a cocktail name..." oninput="showAutocomplete()">
-      <div id="autocomplete-list"></div>
+  <div id="main-container">
+    <!-- Sidebar with Amazon Affiliate Links -->
+    <div id="sidebar">
+      <div class="affiliate-img">
+        <a href="https://amzn.to/4iWtZpg" target="_blank">
+          <img src="https://m.media-amazon.com/images/I/81q4wUI15TS.__AC_SX300_SY300_QL70_FMwebp_.jpg" alt="Buy Cocktail Shaker">
+        </a>
+        <p>Buy Cocktail Kits on Amazon - Click Above!</p>
+      </div>
+      <div class="affiliate-img">
+        <a href="https://amzn.to/40mMtbl" target="_blank">
+          <img src="https://m.media-amazon.com/images/I/71ok9P4Y5PL._SY522_.jpg" alt="Cocktail Glass Set">
+        </a>
+        <p>Explore Cocktail Recipe Books!</p>
+      </div>
     </div>
-    <button onclick="checkAnswer()" style="display: none;" id="submit-button" disabled>Submit</button>
-    <div id="feedback"></div>
-    <div id="guess-history"></div>
+
+    <!-- Game Block -->
+    <div id="game-container">
+      <h1>Cocktail Clue</h1>
+      <div id="loading">Loading cocktails...</div>
+
+      <p>Begin typing below to guess the cocktail and unlock the recipe!</p>
+
+      <img id="cocktail-img" src="" alt="Cocktail" style="display: none;">
+      <div style="position: relative;">
+        <input type="text" id="guess-input" placeholder="Start typing a cocktail name..." oninput="showAutocomplete()">
+        <div id="autocomplete-list"></div>
+      </div>
+<button onclick="checkAnswer()" style="display: none;" id="submit-button" disabled>Submit</button>
+<!-- Button to reveal answer and recipe -->
+<button onclick="revealAnswer()" id="reveal-button" style="display: none; margin-top: 10px;">Reveal Answer & Recipe</button>
+
+      <div id="feedback"></div>
+      <div id="guess-history"></div>
+    </div>
   </div>
 
   <script>
@@ -179,6 +296,7 @@
         document.getElementById("loading").textContent = "You've already played today! Please come back tomorrow.";
         document.getElementById("guess-input").disabled = true;
         document.getElementById("submit-button").disabled = true;
+        document.getElementById("reveal-button").disabled = true;
         return; // Prevent further execution
       }
 
@@ -214,6 +332,7 @@
       imgElement.style.display = "block";
       document.getElementById("loading").style.display = "none";
       document.getElementById("submit-button").style.display = "inline";
+      document.getElementById("reveal-button").style.display = "inline";
     }
 
     function showAutocomplete() {
@@ -254,10 +373,15 @@
       const guessDiv = document.createElement("div");
       guessDiv.classList.add("guess");
 
+      let icon = '';
+      let message = '';
+      let responseClass = '';
+
       if (attemptCount < 5) {
         if (userInput === currentCocktail.strDrink.toLowerCase()) {
-          guessDiv.textContent = `Correct! It's a ${currentCocktail.strDrink}!`;
-          guessDiv.classList.add("correct");
+          icon = '✔️'; // Checkmark icon for correct answers
+          message = `Correct! It's a ${currentCocktail.strDrink}!`;
+          responseClass = 'correct';
           showRecipe();
         } else {
           const userLiquor = cocktails.find(cocktail => cocktail.strDrink.toLowerCase() === userInput)?.strIngredient1;
@@ -266,45 +390,67 @@
           incorrectCocktails.add(userInput);
 
           if (userLiquor === correctLiquor) {
-            guessDiv.textContent = `${userInput} - Incorrect cocktail name, but made with the same liquor: ${correctLiquor}. Try again!`;
-            guessDiv.classList.add("liquor-correct");
+            icon = '🔄'; // Refresh icon for liquor-correct answers
+            message = `${userInput} - Incorrect cocktail name, but made with the same liquor: ${correctLiquor}. Try again!`;
+            responseClass = 'liquor-correct';
           } else {
-            guessDiv.textContent = `${userInput} - Incorrect. Made with a different liquor: ${userLiquor || 'unknown'}. The correct alcohol is ${correctLiquor}. Try again!`;
-            guessDiv.classList.add("incorrect");
+            icon = '❌'; // Cross icon for incorrect answers
+            message = `${userInput} - Incorrect. Made with a different liquor: ${userLiquor || 'unknown'}. The correct alcohol is ${correctLiquor}.`;
+            responseClass = 'incorrect';
           }
         }
-
+        guessDiv.classList.add(responseClass);
+        guessDiv.innerHTML = `${icon} ${message}`;
         guessHistory.appendChild(guessDiv);
         attemptCount++;
-        document.getElementById("guess-input").value = "";
       }
 
-      if (attemptCount >= 5) {
-        feedback.innerHTML = `The correct answer is: ${currentCocktail.strDrink}.`;
-        document.getElementById("submit-button").style.display = "none";
-        showRecipe();
-
-        // Store the date when the game is over
-        const today = new Date().toISOString().slice(0, 10); // Current date
-        localStorage.setItem("lastPlayed", today); // Store today's date
+      // Disable input after 5 attempts
+      if (attemptCount === 5) {
+        document.getElementById("guess-input").disabled = true;
       }
     }
 
     function showRecipe() {
-      const feedback = document.getElementById("feedback");
-      const ingredients = [];
-      for (let i = 1; i <= 15; i++) {
-        const ingredient = currentCocktail[`strIngredient${i}`];
-        const measure = currentCocktail[`strMeasure${i}`];
-        if (ingredient) {
-          ingredients.push(`${measure || ''} ${ingredient}`);
-        }
-      }
-      feedback.innerHTML += `<br><strong>Ingredients:</strong><br>${ingredients.join('<br>')}`;
-      feedback.innerHTML += `<br><strong>Instructions:</strong><br>${currentCocktail.strInstructions}`;
+      const feedbackText = document.createElement("div");
+      feedbackText.classList.add("feedback-text");
+      feedbackText.innerHTML = `
+        <p><strong>Recipe:</strong></p>
+        <ul class="ingredients">
+          <li>${currentCocktail.strIngredient1}: ${currentCocktail.strMeasure1 || 'To taste'}</li>
+          <li>${currentCocktail.strIngredient2}: ${currentCocktail.strMeasure2 || 'To taste'}</li>
+          <li>${currentCocktail.strIngredient3}: ${currentCocktail.strMeasure3 || 'To taste'}</li>
+        </ul>
+        <p><strong>Instructions:</strong></p>
+        <ul class="instructions">
+          <li>${currentCocktail.strInstructions}</li>
+        </ul>
+      `;
+      document.body.appendChild(feedbackText);
     }
 
-    fetchAndCacheCocktails();
+    function revealAnswer() {
+      const feedback = document.getElementById("feedback");
+      const answerDiv = document.createElement("div");
+      answerDiv.classList.add("feedback-text");
+      answerDiv.innerHTML = `
+        <h3>The Answer:</h3>
+        <p><strong>Cocktail Name:</strong> ${currentCocktail.strDrink}</p>
+        <p><strong>Recipe:</strong></p>
+        <ul class="ingredients">
+          <li>${currentCocktail.strIngredient1}: ${currentCocktail.strMeasure1 || 'To taste'}</li>
+          <li>${currentCocktail.strIngredient2}: ${currentCocktail.strMeasure2 || 'To taste'}</li>
+          <li>${currentCocktail.strIngredient3}: ${currentCocktail.strMeasure3 || 'To taste'}</li>
+        </ul>
+        <p><strong>Instructions:</strong></p>
+        <ul class="instructions">
+          <li>${currentCocktail.strInstructions}</li>
+        </ul>
+      `;
+      feedback.appendChild(answerDiv);
+    }
+
+    window.onload = fetchAndCacheCocktails;
   </script>
 </body>
 </html>
